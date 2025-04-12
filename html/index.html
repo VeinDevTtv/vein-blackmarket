@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burner Phone</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="phone-container">
+        <div id="phone-frame">
+            <div id="screen">
+                <div id="header">
+                    <div id="app-name">BURNR</div>
+                    <div id="reputation">REP: <span id="rep-value">0</span> - <span id="rep-level">Street Runner</span></div>
+                </div>
+
+                <div id="content">
+                    <div id="messages-container" class="tab-content">
+                        <div id="contact-list">
+                            <!-- Contact list will be populated here -->
+                        </div>
+                        <div id="conversation" style="display: none;">
+                            <div id="conversation-header">
+                                <button id="back-button">&lt; Back</button>
+                                <div id="contact-name"></div>
+                            </div>
+                            <div id="message-list">
+                                <!-- Messages will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="contracts-container" class="tab-content" style="display: none;">
+                        <div id="contracts-header">
+                            <h2>Active Contracts</h2>
+                        </div>
+                        <div id="contracts-list">
+                            <!-- Contracts will be populated here -->
+                        </div>
+                        <div id="no-contracts" style="display: none;">
+                            No active contracts
+                        </div>
+                    </div>
+                </div>
+
+                <div id="footer">
+                    <div id="self-destruct-button">
+                        SELF DESTRUCT
+                    </div>
+                    <div id="tabs">
+                        <div class="tab active" data-tab="messages">Messages</div>
+                        <div class="tab" data-tab="contracts">Contracts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirm Action</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmation-message">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-yes">YES</button>
+                <button id="confirm-no">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Static Overlay -->
+    <div id="static-overlay"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html> 

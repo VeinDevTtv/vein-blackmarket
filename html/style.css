@@ -1,0 +1,395 @@
+/* Main Styles */
+body {
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: #00ff00;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Phone Styling */
+#phone-container {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 600px;
+}
+
+#phone-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #222;
+    border-radius: 30px;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    padding: 10px;
+    overflow: hidden;
+}
+
+#screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #111;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header Styling */
+#header {
+    position: relative;
+    height: 60px;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #00ff00;
+}
+
+#app-name {
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #00ff00;
+    margin-bottom: 5px;
+}
+
+#reputation {
+    font-size: 12px;
+    color: #00cc00;
+}
+
+/* Content Styling */
+#content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #111;
+    position: relative;
+}
+
+/* Message List Styling */
+#messages-container {
+    height: 100%;
+}
+
+#contact-list {
+    height: 100%;
+}
+
+.contact {
+    padding: 10px;
+    border-bottom: 1px solid #00ff00;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.contact:hover {
+    background-color: rgba(0, 255, 0, 0.1);
+}
+
+#conversation {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#conversation-header {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid #00ff00;
+    margin-bottom: 10px;
+}
+
+#back-button {
+    background: none;
+    border: none;
+    color: #00ff00;
+    cursor: pointer;
+    margin-right: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+#contact-name {
+    font-weight: bold;
+}
+
+#message-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    padding: 8px;
+    border-radius: 5px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message.them {
+    background-color: #001a00;
+    color: #00ff00;
+    align-self: flex-start;
+    margin-right: auto;
+    border-left: 2px solid #00ff00;
+}
+
+.message.me {
+    background-color: #003300;
+    color: #00ff00;
+    align-self: flex-end;
+    margin-left: auto;
+    border-right: 2px solid #00ff00;
+}
+
+.message.system {
+    background-color: #330000;
+    color: #ff0000;
+    align-self: center;
+    margin: 10px auto;
+    text-align: center;
+    border: 1px solid #ff0000;
+}
+
+.message-time {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.encrypted {
+    font-family: 'Courier New', monospace;
+    letter-spacing: -1px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Contracts Styling */
+#contracts-container {
+    height: 100%;
+}
+
+#contracts-header {
+    padding: 5px;
+    border-bottom: 1px solid #00ff00;
+    margin-bottom: 10px;
+}
+
+#contracts-header h2 {
+    margin: 0;
+    font-size: 18px;
+    text-align: center;
+}
+
+.contract-card {
+    background-color: #001a00;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.contract-difficulty {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.difficulty-easy {
+    color: #00ff00;
+}
+
+.difficulty-medium {
+    color: #ffff00;
+}
+
+.difficulty-hard {
+    color: #ff0000;
+}
+
+.contract-details {
+    margin-bottom: 10px;
+    white-space: pre-line;
+}
+
+.contract-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.accept-btn, .decline-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+.accept-btn {
+    background-color: #004d00;
+    color: #00ff00;
+}
+
+.decline-btn {
+    background-color: #4d0000;
+    color: #ff0000;
+}
+
+#no-contracts {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #666;
+}
+
+/* Footer Styling */
+#footer {
+    height: 60px;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #00ff00;
+}
+
+#self-destruct-button {
+    text-align: center;
+    padding: 5px;
+    color: #ff0000;
+    background-color: #330000;
+    border: 1px solid #ff0000;
+    border-radius: 3px;
+    margin: 5px 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+#tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-top: auto;
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    color: #007700;
+}
+
+.tab.active {
+    color: #00ff00;
+    border-top: 2px solid #00ff00;
+}
+
+/* Modal Styling */
+#confirmation-modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    background-color: #111;
+    border: 2px solid #ff0000;
+    border-radius: 5px;
+    z-index: 10;
+}
+
+.modal-content {
+    padding: 15px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #ff0000;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #ff0000;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+
+#confirm-yes, #confirm-no {
+    padding: 5px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+#confirm-yes {
+    background-color: #4d0000;
+    color: #ff0000;
+}
+
+#confirm-no {
+    background-color: #001a00;
+    color: #00ff00;
+}
+
+/* Static Effect */
+#static-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABGCAMAAABG8BK2AAAAYFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATwFOxAAAAH3RSTlMAgPAQQMDgMNAwIBAgoFDQsJBgcO+/b19PkF9vT09vLRrDLgAAAd1JREFUWMPtl0l2gzAQRLtbAow5zVye+18yVhJIQPKS/JfkLYGib1XX9ILfiw5+NBz8QkjhR/H4aEPSPcNHGzaEjkXjgw1J9ZsfbLoRbg3qqTWW1k9r2rGjt7aY7TCVHcrRCRxKYZPZ8YfGSWZnytHJbkpmx6TOsdvdVb6N4+QIgTpMlIoOVhHqMFu0J4wQXFW/1t5ZsFT9sAKzmNYJwVWVxpJMqNKYL50pgH32JhcKg1X0Ov2jnAh8ZXITOYXBdI/SfXIqTKlTSQlD6RjRMGfCV+qMKsJgLR+2+B5LKrA6CwvtT7jS0f1mMUjRxHRxDAY6X9YMpmlSLJcJg7X/sBNdS1U2doNB98q6oevxcgKmxLnSV3mVz7Lq1HYwWNSvsnQWfkxYGWmTGS63ERNmLj2sR4WllTZhwiRm21rqfCDjdCgGqVHFkSjMqtJYqDwUKsdOTtGi8lCoHDvd59+gKj5LFWfWvf9HKnKjDJhXZccsqrv0s9TP45tK1Y8+Yt7qPhlbqjx5Kne7+LXSs9TTQB7McvHzkZKiZjvf40g67bPU9/0tUbfPuL9kPeKEZq3g3mlldOeXfM/9T3v3p6cZ8+Yj/RLzpg1OLZ9r1PwyxAU3F4FwAQAAAABJRU5ErkJggg==');
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+}
+
+/* Animations */
+@keyframes static {
+    0% { opacity: 0.03; }
+    50% { opacity: 0.06; }
+    100% { opacity: 0.03; }
+}
+
+@keyframes decrypt {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.decrypting {
+    position: relative;
+}
+
+.decrypting::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    animation: decrypt 3s forwards;
+} 
