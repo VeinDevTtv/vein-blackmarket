@@ -114,6 +114,18 @@ function GetRepLevel()
     return level
 end
 
+-- Helper function for cross-framework notifications
+function SendNotification(message, notifType, duration)
+    duration = duration or 3500
+    if Config.Framework == "qbox" then
+        -- QBox notification
+        Framework.Functions.Notify(message, notifType, duration)
+    else
+        -- Default to QBCore notification
+        TriggerEvent('QBCore:Notify', message, notifType, duration)
+    end
+end
+
 -- Add a new contract message
 function AddContractMessage(contract)
     local message = {
@@ -143,7 +155,7 @@ function AddContractMessage(contract)
     
     -- Send notification if phone is not open
     if not phoneOpen then
-        TriggerEvent('QBCore:Notify', Locales['en']['new_contract'], 'success', 3500)
+        SendNotification(Locales['en']['new_contract'], 'success', 3500)
         -- Play notification sound
         PlaySoundFrontend(-1, "Text_Arrive_Tone", "Phone_SoundSet_Default", 1)
     end
@@ -287,7 +299,7 @@ function StartContractTimer(contract)
             -- Warning at 25% time left
             if not warningSent and timeLeft <= (contract.timeLimit * 60 * 0.25) then
                 warningSent = true
-                TriggerEvent('QBCore:Notify', "Contract time running out! " .. math.floor(timeLeft/60) .. " minutes left", 'error', 5000)
+                SendNotification("Contract time running out! " .. math.floor(timeLeft/60) .. " minutes left", 'error', 5000)
             end
         end
         
@@ -320,7 +332,7 @@ function FailCurrentContract(reason)
     end
     
     -- Notify player
-    TriggerEvent('QBCore:Notify', Locales['en']['contract_failed'], 'error', 5000)
+    SendNotification(Locales['en']['contract_failed'], 'error', 5000)
     
     -- Clear blips
     ClearAllBlips()
@@ -344,5 +356,5 @@ end)
 -- Phone self-destruct cooldown notification
 RegisterNetEvent('vein-blackmarket:client:selfDestructCooldown')
 AddEventHandler('vein-blackmarket:client:selfDestructCooldown', function(minutes)
-    TriggerEvent('QBCore:Notify', "Burner phone reset. New contacts in " .. minutes .. " minutes.", 'info', 5000)
+    SendNotification("Burner phone reset. New contacts in " .. minutes .. " minutes.", 'info', 5000)
 end) 

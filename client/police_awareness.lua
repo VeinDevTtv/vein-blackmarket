@@ -153,16 +153,16 @@ function AddHeat(amount)
     -- Notify at thresholds
     if oldHeat < 25 and heatLevel >= 25 and not heatNotify[25] then
         heatNotify[25] = true
-        TriggerEvent('QBCore:Notify', Locales['en']['heat_increasing'], 'warning', 3500)
+        SendNotification(Locales['en']['heat_increasing'], 'warning', 3500)
     elseif oldHeat < 50 and heatLevel >= 50 and not heatNotify[50] then
         heatNotify[50] = true
-        TriggerEvent('QBCore:Notify', Locales['en']['heat_increasing'] .. " - " .. Locales['en']['suspicious_activity'], 'warning', 3500)
+        SendNotification(Locales['en']['heat_increasing'] .. " - " .. Locales['en']['suspicious_activity'], 'warning', 3500)
     elseif oldHeat < 75 and heatLevel >= 75 and not heatNotify[75] then
         heatNotify[75] = true
-        TriggerEvent('QBCore:Notify', Locales['en']['police_alert'], 'error', 3500)
+        SendNotification(Locales['en']['police_alert'], 'error', 3500)
     elseif oldHeat < 90 and heatLevel >= 90 and not heatNotify[90] then
         heatNotify[90] = true
-        TriggerEvent('QBCore:Notify', "Police are actively searching for you!", 'error', 5000)
+        SendNotification("Police are actively searching for you!", 'error', 5000)
     end
 end
 

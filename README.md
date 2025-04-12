@@ -40,9 +40,10 @@ A shadowy underworld job system for FiveM servers with encrypted communication, 
 
 1. Add the `vein-blackmarket` folder to your server's resources directory
 2. Add `start vein-blackmarket` to your server.cfg
-3. Ensure you have qb-core installed and running
-4. Add the burner phone image to your inventory resource (if needed)
-5. Restart your server
+3. Ensure you have QBCore or QBox installed and running
+4. Configure your desired framework in the config.lua file
+5. Add the burner phone image to your inventory resource (if needed)
+6. Restart your server
 
 ## Configuration
 
@@ -69,12 +70,20 @@ You can customize the script by editing the `config/config.lua` file:
 
 ## Dependencies
 
-- QBCore Framework
+- QBCore Framework OR QBox Framework
 - Latest FiveM build
+
+## Framework Support
+
+This resource supports both QBCore and QBox frameworks. To select your framework:
+
+1. Open `config/config.lua`
+2. Set `Config.Framework` to either "qbcore" or "qbox"
+3. Restart the resource
 
 ## Credits
 
-Created by Vein
+Created by Your Organization/Name
 
 ## License
 
@@ -82,4 +91,4 @@ This resource is protected under copyright law. You are free to use and modify i
 
 ## Support
 
-For support or feature requests, contact us through our Discord: discord.gg/evolve
+For support or feature requests, contact us through our Discord: [Your Discord Link] 

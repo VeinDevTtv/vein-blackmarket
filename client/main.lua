@@ -1,4 +1,7 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+-- Framework detection
+local QBCore = nil
+local Framework = nil
+
 local PlayerData = {}
 local CurrentContract = nil
 local ActiveContracts = {}
@@ -14,16 +17,23 @@ local npcWatcher = nil
 
 -- Initialize the resource
 Citizen.CreateThread(function()
-    while QBCore == nil do
-        TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
-        Citizen.Wait(0)
+    if Config.Framework == "qbox" then
+        Framework = exports['qbx_core']:GetCoreObject()
+        QBCore = Framework
+    else -- Default to QBCore
+        Framework = exports['qb-core']:GetCoreObject()
+        QBCore = Framework
     end
 
-    while QBCore.Functions.GetPlayerData() == nil do
+    while Framework == nil do
+        Wait(0)
+    end
+
+    while Framework.Functions.GetPlayerData() == nil do
         Citizen.Wait(10)
     end
 
-    PlayerData = QBCore.Functions.GetPlayerData()
+    PlayerData = Framework.Functions.GetPlayerData()
     isLoggedIn = true
     CheckBurnerPhone()
     
@@ -43,7 +53,15 @@ end)
 -- Check for updates to player data
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded')
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-    PlayerData = QBCore.Functions.GetPlayerData()
+    PlayerData = Framework.Functions.GetPlayerData()
+    isLoggedIn = true
+    CheckBurnerPhone()
+end)
+
+-- QBox compatibility
+RegisterNetEvent('qbx_core:client:OnPlayerLoaded')
+AddEventHandler('qbx_core:client:OnPlayerLoaded', function()
+    PlayerData = Framework.Functions.GetPlayerData()
     isLoggedIn = true
     CheckBurnerPhone()
 end)
@@ -59,8 +77,27 @@ AddEventHandler('QBCore:Client:OnPlayerUnload', function()
     RemoveNPCWatcher()
 end)
 
+-- QBox compatibility
+RegisterNetEvent('qbx_core:client:OnPlayerUnload')
+AddEventHandler('qbx_core:client:OnPlayerUnload', function()
+    isLoggedIn = false
+    PlayerData = {}
+    ClearAllBlips()
+    CurrentContract = nil
+    ActiveContracts = {}
+    heatLevel = 0
+    RemoveNPCWatcher()
+end)
+
 RegisterNetEvent('QBCore:Player:SetPlayerData')
 AddEventHandler('QBCore:Player:SetPlayerData', function(data)
+    PlayerData = data
+    CheckBurnerPhone()
+end)
+
+-- QBox compatibility
+RegisterNetEvent('qbx_core:player:SetPlayerData')
+AddEventHandler('qbx_core:player:SetPlayerData', function(data)
     PlayerData = data
     CheckBurnerPhone()
 end)

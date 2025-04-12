@@ -203,7 +203,7 @@ function CompleteContract()
     end
     
     -- Notification
-    TriggerEvent('QBCore:Notify', string.format(Locales['en']['contract_completed'], CurrentContract.payment), 'success', 5000)
+    SendNotification(string.format(Locales['en']['contract_completed'], CurrentContract.payment), 'success', 5000)
     
     -- Clear contract data
     CurrentContract = nil
@@ -397,7 +397,7 @@ function TriggerRandomAmbientEvent()
         }
         
         local message = messages[math.random(1, #messages)]
-        TriggerEvent('QBCore:Notify', message, 'error', 5000)
+        SendNotification(message, 'error', 5000)
         PlaySoundFrontend(-1, "Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS", 1)
     end
 end

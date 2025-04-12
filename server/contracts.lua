@@ -1,9 +1,41 @@
+-- Vein BlackMarket: Contracts server file
+local QBCore = nil
 local activeContracts = {}
 local contractIdCounter = 0
+local onlineContractDrop = {}
+
+-- Framework reference
+local Framework = nil
+Citizen.CreateThread(function()
+    if Config.Framework == "qbox" then
+        Framework = exports['qbx_core']:GetCoreObject()
+        QBCore = Framework
+    else -- Default to QBCore
+        Framework = exports['qb-core']:GetCoreObject()
+        QBCore = Framework
+    end
+end)
+
+-- Helper function for sending notifications across frameworks
+function SendNotification(source, message, notifType, duration)
+    if not source or source == 0 then return end
+    duration = duration or 3500
+    if Config.Framework == "qbox" then
+        -- QBox notification
+        TriggerClientEvent('qbx_core:notify', source, {
+            title = "Black Market",
+            description = message,
+            type = notifType
+        })
+    else
+        -- Default to QBCore notification
+        TriggerClientEvent('QBCore:Notify', source, message, notifType, duration)
+    end
+end
 
 -- Generate a new contract for a player
 function GenerateContractForPlayer(playerId)
-    local Player = QBCore.Functions.GetPlayer(playerId)
+    local Player = Framework.Functions.GetPlayer(playerId)
     
     if not Player then return end
     
@@ -158,7 +190,7 @@ end)
 RegisterNetEvent('vein-blackmarket:server:completeContract')
 AddEventHandler('vein-blackmarket:server:completeContract', function(contractId, heatLevel)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = Framework.Functions.GetPlayer(src)
     local contract = activeContracts[contractId]
     
     if not contract or not Player then return end
@@ -194,9 +226,9 @@ AddEventHandler('vein-blackmarket:server:completeContract', function(contractId,
             -- 10% chance to get full payment even if decoy
             if math.random() < 0.1 then
                 Player.Functions.AddMoney('cash', finalPayment)
-                TriggerClientEvent('QBCore:Notify', src, 'You delivered a decoy package but still got paid $' .. finalPayment, 'success')
+                SendNotification(src, 'You delivered a decoy package but still got paid $' .. finalPayment, 'success')
             else
-                TriggerClientEvent('QBCore:Notify', src, 'You delivered a decoy package! No payment received.', 'error')
+                SendNotification(src, 'You delivered a decoy package! No payment received.', 'error')
                 finalPayment = 0
             end
         else
@@ -208,8 +240,8 @@ AddEventHandler('vein-blackmarket:server:completeContract', function(contractId,
         if contract.hasBonus and #contract.bonusItems > 0 and not contract.isDecoy then
             for _, item in ipairs(contract.bonusItems) do
                 Player.Functions.AddItem(item.name, item.amount)
-                TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[item.name], 'add')
-                TriggerClientEvent('QBCore:Notify', src, 'Bonus item received: ' .. item.label, 'success')
+                TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[item.name], 'add')
+                SendNotification(src, 'Bonus item received: ' .. item.label, 'success')
             end
         end
         
@@ -241,7 +273,7 @@ AddEventHandler('vein-blackmarket:server:failContract', function(contractId)
         
         -- Potential rep loss for failed contracts (only medium/hard)
         if contract.difficulty ~= "easy" then
-            local Player = QBCore.Functions.GetPlayer(src)
+            local Player = Framework.Functions.GetPlayer(src)
             if Player then
                 local repLoss = -2
                 if contract.difficulty == "hard" then
@@ -249,7 +281,7 @@ AddEventHandler('vein-blackmarket:server:failContract', function(contractId)
                 end
                 
                 AddPlayerReputation(Player, repLoss)
-                TriggerClientEvent('QBCore:Notify', src, 'Lost reputation: ' .. repLoss, 'error')
+                SendNotification(src, 'Lost reputation: ' .. repLoss, 'error')
             end
         end
         
@@ -272,7 +304,7 @@ Citizen.CreateThread(function()
                 -- Notify the player if they're online
                 local playerId = contract.playerId
                 if GetPlayerFromSource(playerId) then
-                    TriggerClientEvent('QBCore:Notify', playerId, Locales['en']['contract_expired'], 'error')
+                    SendNotification(playerId, Locales['en']['contract_expired'], 'error')
                 end
             end
         end
@@ -293,7 +325,7 @@ function AddPlayerReputation(Player, amount)
     -- Send notification
     local source = Player.PlayerData.source
     if amount > 0 then
-        TriggerClientEvent('QBCore:Notify', source, string.format(Locales['en']['rep_increased'], amount), 'success')
+        SendNotification(source, string.format(Locales['en']['rep_increased'], amount), 'success')
     end
     
     -- Check for level up
@@ -301,8 +333,8 @@ function AddPlayerReputation(Player, amount)
     local newLevel, _, _ = GetRepDataForLevel(newRep)
     
     if newLevel and oldLevel and newLevel.threshold > oldLevel.threshold then
-        TriggerClientEvent('QBCore:Notify', source, string.format(Locales['en']['level_up'], newLevel.name), 'success')
-        TriggerClientEvent('QBCore:Notify', source, string.format(Locales['en']['unlocked'], newLevel.unlocks), 'success')
+        SendNotification(source, string.format(Locales['en']['level_up'], newLevel.name), 'success')
+        SendNotification(source, string.format(Locales['en']['unlocked'], newLevel.unlocks), 'success')
     end
     
     return newRep

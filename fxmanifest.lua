@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 
-author 'vein'
+author 'Your Name'
 description 'Black Market Courier System'
 version '1.0.0'
 

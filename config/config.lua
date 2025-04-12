@@ -1,8 +1,11 @@
 Config = {}
 
+-- Framework Selection
+Config.Framework = "qbox" -- Options: "qbcore", "qbox"
+
 -- General Settings
 Config.Debug = false
-Config.UseQBCore = true
+Config.UseQBCore = false
 
 -- Burner Phone Settings
 Config.BurnerPhoneItem = 'burner_phone'

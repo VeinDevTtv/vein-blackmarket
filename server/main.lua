@@ -1,10 +1,18 @@
-local QBCore = exports['qb-core']:GetCoreObject()
-local PlayerData = {}
-local cooldowns = {}
+-- Framework detection
+local QBCore = nil
+local Framework = nil
 
 -- Initialize
 Citizen.CreateThread(function()
-    -- Add burner phone to QBCore items
+    if Config.Framework == "qbox" then
+        Framework = exports['qbx_core']:GetCoreObject()
+        QBCore = Framework
+    else -- Default to QBCore
+        Framework = exports['qb-core']:GetCoreObject()
+        QBCore = Framework
+    end
+    
+    -- Add burner phone to Framework items
     CreateBurnerPhoneItem()
     
     -- Start contract generation for players with phones
@@ -14,7 +22,7 @@ end)
 
 -- Create the burner phone item
 function CreateBurnerPhoneItem()
-    QBCore.Functions.AddItem(Config.BurnerPhoneItem, {
+    Framework.Functions.AddItem(Config.BurnerPhoneItem, {
         name = Config.BurnerPhoneItem,
         label = 'Burner Phone',
         weight = 200,
@@ -27,27 +35,43 @@ function CreateBurnerPhoneItem()
         description = 'A disposable phone for underground communications'
     })
     
-    QBCore.Functions.CreateUseableItem(Config.BurnerPhoneItem, function(source, item)
-        local Player = QBCore.Functions.GetPlayer(source)
+    Framework.Functions.CreateUseableItem(Config.BurnerPhoneItem, function(source, item)
+        local Player = Framework.Functions.GetPlayer(source)
         if Player then
             TriggerClientEvent('vein-blackmarket:client:togglePhone', source)
         end
     end)
 end
 
+-- Helper function for cross-framework notifications
+function SendNotification(source, message, notifType, duration)
+    duration = duration or 3500
+    if Config.Framework == "qbox" then
+        -- QBox notification
+        TriggerClientEvent('qbx_core:notify', source, {
+            title = "Black Market",
+            description = message,
+            type = notifType
+        })
+    else
+        -- Default to QBCore notification
+        TriggerClientEvent('QBCore:Notify', source, message, notifType, duration)
+    end
+end
+
 -- Purchase a burner phone
 RegisterNetEvent('vein-blackmarket:server:buyBurnerPhone')
 AddEventHandler('vein-blackmarket:server:buyBurnerPhone', function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = Framework.Functions.GetPlayer(src)
     
     if Player then
         local price = 500
         if Player.PlayerData.money.cash >= price then
             Player.Functions.RemoveMoney('cash', price)
             Player.Functions.AddItem(Config.BurnerPhoneItem, 1)
-            TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.BurnerPhoneItem], 'add')
-            TriggerClientEvent('QBCore:Notify', src, Locales['en']['phone_purchased'], 'success')
+            TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[Config.BurnerPhoneItem], 'add')
+            SendNotification(src, Locales['en']['phone_purchased'], 'success')
             
             -- Generate first contract after short delay
             Citizen.SetTimeout(30000, function()
@@ -56,7 +80,7 @@ AddEventHandler('vein-blackmarket:server:buyBurnerPhone', function()
                 end
             end)
         else
-            TriggerClientEvent('QBCore:Notify', src, Locales['en']['not_enough_money'], 'error')
+            SendNotification(src, Locales['en']['not_enough_money'], 'error')
         end
     end
 end)
@@ -104,7 +128,7 @@ end
 RegisterNetEvent('vein-blackmarket:server:selfDestruct')
 AddEventHandler('vein-blackmarket:server:selfDestruct', function()
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = Framework.Functions.GetPlayer(src)
     
     if Player then
         local citizenId = Player.PlayerData.citizenid
@@ -167,6 +191,6 @@ end)
 
 -- Check if a player exists by source
 function GetPlayerFromSource(src)
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = Framework.Functions.GetPlayer(src)
     return Player ~= nil
 end 
