@@ -21,9 +21,7 @@ client_scripts {
 
 server_scripts {
     'server/main.lua',
-    'server/contracts.lua',
-    'server/reputation.lua',
-    'server/payout.lua'
+    'server/contracts.lua'
 }
 
 ui_page 'html/index.html'

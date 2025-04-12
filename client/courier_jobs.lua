@@ -109,6 +109,8 @@ function PickupPackage()
     AttachEntityToEntity(packageObject, playerPed, GetPedBoneIndex(playerPed, 60309), 0.025, 0.08, 0.255, -145.0, 290.0, 0.0, true, true, false, true, 1, true)
     
     hasPackage = true
+    -- Notify other modules about package status
+    TriggerEvent('vein-blackmarket:client:setHasPackage', true)
     
     -- Remove pickup blip and create dropoff blip
     if pickupBlip and DoesBlipExist(pickupBlip) then
@@ -164,6 +166,8 @@ function DropoffPackage()
     DeleteEntity(packageObject)
     packageObject = nil
     hasPackage = false
+    -- Notify other modules about package status
+    TriggerEvent('vein-blackmarket:client:setHasPackage', false)
     
     -- Remove blip
     if dropoffBlip and DoesBlipExist(dropoffBlip) then

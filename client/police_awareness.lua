@@ -9,6 +9,13 @@ local policeAlerted = false
 local policeCopsCount = 0
 local heatUI = nil
 local lastVehicleDamageTime = 0
+local hasPackage = false
+
+-- Get hasPackage status from courier_jobs.lua
+RegisterNetEvent('vein-blackmarket:client:setHasPackage')
+AddEventHandler('vein-blackmarket:client:setHasPackage', function(status)
+    hasPackage = status
+end)
 
 -- Initialize heat tracking system
 Citizen.CreateThread(function()

@@ -8,7 +8,7 @@ local onlineContractDrop = {}
 local Framework = nil
 Citizen.CreateThread(function()
     if Config.Framework == "qbox" then
-        Framework = exports['qbx_core']:GetCoreObject()
+        Framework = exports['qbx_core']:GetSharedObject()
         QBCore = Framework
     else -- Default to QBCore
         Framework = exports['qb-core']:GetCoreObject()

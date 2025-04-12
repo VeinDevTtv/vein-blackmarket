@@ -1,5 +1,5 @@
 -- Phone UI Variables
-local phoneModel = joaat(Config.BurnerPhoneModel)
+local phoneModel = GetHashKey(Config.BurnerPhoneModel)
 local phoneProps = nil
 local usingPhone = false
 local hasDecryptedMessages = false
