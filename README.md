@@ -74,7 +74,7 @@ You can customize the script by editing the `config/config.lua` file:
 
 ## Credits
 
-Created by Your Organization/Name
+Created by Vein
 
 ## License
 
@@ -82,4 +82,4 @@ This resource is protected under copyright law. You are free to use and modify i
 
 ## Support
 
-For support or feature requests, contact us through our Discord: [Your Discord Link] 
+For support or feature requests, contact us through our Discord: discord.gg/evolve
