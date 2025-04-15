@@ -292,16 +292,31 @@ AddEventHandler('vein-blackmarket:server:completeContract', function(contractId,
         
         -- Award bonus items if applicable
         if contract.hasBonus and #contract.bonusItems > 0 and not contract.isDecoy then
+            -- Check if using QBX with ox_inventory
+            local isQbox = Config.Framework == "qbox"
+            local hasOxInventory = pcall(function() return exports.ox_inventory end)
+            
             for _, item in ipairs(contract.bonusItems) do
-                if Config.Framework == "qbox" then
-                    -- Use ox_inventory for QBox
-                    exports.ox_inventory:AddItem(src, item.name, item.amount)
+                local itemAdded = false
+                
+                if isQbox and hasOxInventory then
+                    -- Use ox_inventory to add items
+                    itemAdded = exports.ox_inventory:AddItem(src, item.name, item.amount)
+                    if itemAdded then
+                        SendNotification(src, 'Bonus item received: ' .. item.label, 'success')
+                    else
+                        SendNotification(src, 'Your inventory is full! Some bonus items could not be added.', 'error')
+                    end
                 else
                     -- Use QBCore inventory
-                    Player.Functions.AddItem(item.name, item.amount)
-                    TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[item.name], 'add')
+                    local canCarry = Player.Functions.AddItem(item.name, item.amount)
+                    if canCarry then
+                        TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[item.name], 'add')
+                        SendNotification(src, 'Bonus item received: ' .. item.label, 'success')
+                    else
+                        SendNotification(src, 'Your inventory is full! Some bonus items could not be added.', 'error')
+                    end
                 end
-                SendNotification(src, 'Bonus item received: ' .. item.label, 'success')
             end
         end
         

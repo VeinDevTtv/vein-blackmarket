@@ -85,8 +85,28 @@ function CreateBurnerPhoneItem()
         return
     end
     
-    -- QBox with ox_inventory doesn't need pre-registration
-    if Config.Framework ~= "qbox" then 
+    -- Check if using QBX with ox_inventory
+    local isQbox = Config.Framework == "qbox"
+    local hasOxInventory = pcall(function() return exports.ox_inventory end)
+    
+    if isQbox and hasOxInventory then
+        -- Register with ox_inventory instead of adding to QBX items
+        local success = exports.ox_inventory:RegisterItem({
+            name = Config.BurnerPhoneItem,
+            label = 'Burner Phone',
+            weight = 200,
+            stack = true,
+            close = true,
+            description = 'A disposable phone for underground communications'
+        })
+        
+        if success then
+            print('^2[vein-blackmarket] Registered burner phone with ox_inventory^0')
+        else
+            print('^1[vein-blackmarket] Failed to register burner phone with ox_inventory^0')
+        end
+    elseif not isQbox then
+        -- For regular QBCore, use the traditional method
         Framework.Functions.AddItem(Config.BurnerPhoneItem, {
             name = Config.BurnerPhoneItem,
             label = 'Burner Phone',
@@ -101,6 +121,7 @@ function CreateBurnerPhoneItem()
         })
     end
     
+    -- Make item usable (works for both ox_inventory and QBCore)
     Framework.Functions.CreateUseableItem(Config.BurnerPhoneItem, function(source, item)
         local Player = Framework.Functions.GetPlayer(source)
         if Player then
@@ -141,25 +162,47 @@ AddEventHandler('vein-blackmarket:server:buyBurnerPhone', function()
         if Player.PlayerData.money.cash >= price then
             Player.Functions.RemoveMoney('cash', price)
             
-            if Config.Framework == "qbox" then
-                -- Use ox_inventory for QBox
-                exports.ox_inventory:AddItem(src, Config.BurnerPhoneItem, 1)
-                -- Update client
-                TriggerClientEvent('vein-blackmarket:client:updatePhoneStatus', src, true)
+            -- Check if using QBX with ox_inventory
+            local isQbox = Config.Framework == "qbox"
+            local hasOxInventory = pcall(function() return exports.ox_inventory end)
+            
+            local itemAdded = false
+            if isQbox and hasOxInventory then
+                -- Use ox_inventory to add item
+                itemAdded = exports.ox_inventory:AddItem(src, Config.BurnerPhoneItem, 1)
+                if itemAdded then
+                    -- Update client
+                    TriggerClientEvent('vein-blackmarket:client:updatePhoneStatus', src, true)
+                else
+                    -- Refund if inventory is full
+                    Player.Functions.AddMoney('cash', price)
+                    SendNotification(src, 'Your inventory is full!', 'error')
+                    return
+                end
             else
                 -- Use QBCore inventory
-                Player.Functions.AddItem(Config.BurnerPhoneItem, 1)
-                TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[Config.BurnerPhoneItem], 'add')
+                local canCarry = Player.Functions.AddItem(Config.BurnerPhoneItem, 1)
+                if canCarry then
+                    TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[Config.BurnerPhoneItem], 'add')
+                    itemAdded = true
+                else
+                    -- Refund if inventory is full
+                    Player.Functions.AddMoney('cash', price)
+                    SendNotification(src, 'Your inventory is full!', 'error')
+                    return
+                end
             end
             
-            SendNotification(src, Locales['en']['phone_purchased'], 'success')
-            
-            -- Generate first contract after short delay
-            Citizen.SetTimeout(30000, function()
-                if GetPlayerFromSource(src) then
-                    GenerateContractForPlayer(src)
-                end
-            end)
+            if itemAdded then
+                SendNotification(src, Locales['en']['phone_purchased'], 'success')
+                
+                -- Generate first contract after short delay
+                Citizen.SetTimeout(30000, function()
+                    if GetPlayerFromSource(src) then
+                        GenerateContractForPlayer(src)
+                    end
+                end)
+            end
         else
             SendNotification(src, Locales['en']['not_enough_money'], 'error')
         end
