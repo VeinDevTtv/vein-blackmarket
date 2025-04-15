@@ -90,21 +90,9 @@ function CreateBurnerPhoneItem()
     local hasOxInventory = pcall(function() return exports.ox_inventory end)
     
     if isQbox and hasOxInventory then
-        -- Register with ox_inventory instead of adding to QBX items
-        local success = exports.ox_inventory:RegisterItem({
-            name = Config.BurnerPhoneItem,
-            label = 'Burner Phone',
-            weight = 200,
-            stack = true,
-            close = true,
-            description = 'A disposable phone for underground communications'
-        })
-        
-        if success then
-            print('^2[vein-blackmarket] Registered burner phone with ox_inventory^0')
-        else
-            print('^1[vein-blackmarket] Failed to register burner phone with ox_inventory^0')
-        end
+        -- Using ox_inventory - we don't need to register items as they should be in the data files
+        -- Just print a status message
+        print('^2[vein-blackmarket] Using ox_inventory with QBX, burner phone should be defined in items.lua^0')
     elseif not isQbox then
         -- For regular QBCore, use the traditional method
         Framework.Functions.AddItem(Config.BurnerPhoneItem, {
@@ -128,6 +116,8 @@ function CreateBurnerPhoneItem()
             TriggerClientEvent('vein-blackmarket:client:togglePhone', source)
         end
     end)
+    
+    print('^2[vein-blackmarket] Burner phone item made usable^0')
 end
 
 -- Helper function for cross-framework notifications
