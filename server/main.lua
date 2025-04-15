@@ -1,39 +1,105 @@
 -- Framework detection
 local QBCore = nil
 local Framework = nil
+local cooldowns = {}
 
 -- Initialize
 Citizen.CreateThread(function()
     if Config.Framework == "qbox" then
-        Framework = exports['qbx_core']:GetSharedObject()
-        QBCore = Framework
+        -- Try different methods to get QBX Core with error handling
+        local success, result = pcall(function()
+            return exports['qbx_core']:GetCoreObject()
+        end)
+        
+        if success and result then
+            Framework = result
+            QBCore = Framework
+            print('^2[vein-blackmarket] QBX Core loaded via GetCoreObject^0')
+        else
+            -- Try alternative methods
+            success, result = pcall(function() 
+                return exports['qbx_core']:GetSharedObject() 
+            end)
+            
+            if success and result then
+                Framework = result
+                QBCore = Framework
+                print('^2[vein-blackmarket] QBX Core loaded via GetSharedObject^0')
+            else
+                print('^1[vein-blackmarket] Failed to load QBX Core. Falling back to QBCore.^0')
+                
+                -- Fall back to QBCore
+                success, result = pcall(function() 
+                    return exports['qb-core']:GetCoreObject() 
+                end)
+                
+                if success and result then
+                    Framework = result
+                    QBCore = Framework
+                    print('^2[vein-blackmarket] QBCore loaded as fallback^0')
+                else
+                    print('^1[vein-blackmarket] Failed to load any framework. Resource may not function correctly.^0')
+                end
+            end
+        end
+        
+        -- Register ox_inventory hook for QBox to track burner phone
+        RegisterServerEvent('ox_inventory:itemCount')
+        AddEventHandler('ox_inventory:itemCount', function(source, item, count)
+            if item == Config.BurnerPhoneItem then
+                local hasPhone = count > 0
+                TriggerClientEvent('vein-blackmarket:client:updatePhoneStatus', source, hasPhone)
+            end
+        end)
     else -- Default to QBCore
-        Framework = exports['qb-core']:GetCoreObject()
-        QBCore = Framework
+        local success, result = pcall(function() 
+            return exports['qb-core']:GetCoreObject() 
+        end)
+        
+        if success and result then
+            Framework = result
+            QBCore = Framework
+            print('^2[vein-blackmarket] QBCore loaded via GetCoreObject^0')
+        else
+            print('^1[vein-blackmarket] Failed to load QBCore. Resource may not function correctly.^0')
+        end
     end
     
-    -- Add burner phone to Framework items
-    CreateBurnerPhoneItem()
-    
-    -- Start contract generation for players with phones
-    Citizen.Wait(10000) -- Wait for server to initialize
-    StartContractGeneration()
+    -- Only continue if framework is loaded
+    if Framework then
+        -- Add burner phone to Framework items
+        CreateBurnerPhoneItem()
+        
+        -- Start contract generation for players with phones
+        Citizen.Wait(10000) -- Wait for server to initialize
+        StartContractGeneration()
+    else
+        print('^1[vein-blackmarket] No framework loaded. Resource initialization halted.^0')
+    end
 end)
 
 -- Create the burner phone item
 function CreateBurnerPhoneItem()
-    Framework.Functions.AddItem(Config.BurnerPhoneItem, {
-        name = Config.BurnerPhoneItem,
-        label = 'Burner Phone',
-        weight = 200,
-        type = 'item',
-        image = 'burner_phone.png',
-        unique = false,
-        useable = true,
-        shouldClose = true,
-        combinable = nil,
-        description = 'A disposable phone for underground communications'
-    })
+    if not Framework then
+        print('^1[vein-blackmarket] Framework not initialized. Cannot create burner phone item.^0')
+        return
+    end
+    
+    -- QBox with ox_inventory doesn't need pre-registration
+    if Config.Framework ~= "qbox" then 
+        Framework.Functions.AddItem(Config.BurnerPhoneItem, {
+            name = Config.BurnerPhoneItem,
+            label = 'Burner Phone',
+            weight = 200,
+            type = 'item',
+            image = 'burner_phone.png',
+            unique = false,
+            useable = true,
+            shouldClose = true,
+            combinable = nil,
+            description = 'A disposable phone for underground communications'
+        })
+    end
     
     Framework.Functions.CreateUseableItem(Config.BurnerPhoneItem, function(source, item)
         local Player = Framework.Functions.GetPlayer(source)
@@ -63,14 +129,29 @@ end
 RegisterNetEvent('vein-blackmarket:server:buyBurnerPhone')
 AddEventHandler('vein-blackmarket:server:buyBurnerPhone', function()
     local src = source
+    if not Framework then
+        print('^1[vein-blackmarket] Framework not initialized. Cannot process burner phone purchase.^0')
+        return
+    end
+    
     local Player = Framework.Functions.GetPlayer(src)
     
     if Player then
         local price = 500
         if Player.PlayerData.money.cash >= price then
             Player.Functions.RemoveMoney('cash', price)
-            Player.Functions.AddItem(Config.BurnerPhoneItem, 1)
-            TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[Config.BurnerPhoneItem], 'add')
+            
+            if Config.Framework == "qbox" then
+                -- Use ox_inventory for QBox
+                exports.ox_inventory:AddItem(src, Config.BurnerPhoneItem, 1)
+                -- Update client
+                TriggerClientEvent('vein-blackmarket:client:updatePhoneStatus', src, true)
+            else
+                -- Use QBCore inventory
+                Player.Functions.AddItem(Config.BurnerPhoneItem, 1)
+                TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[Config.BurnerPhoneItem], 'add')
+            end
+            
             SendNotification(src, Locales['en']['phone_purchased'], 'success')
             
             -- Generate first contract after short delay
@@ -87,6 +168,11 @@ end)
 
 -- Generate contracts for all players periodically
 function StartContractGeneration()
+    if not QBCore then
+        print('^1[vein-blackmarket] QBCore not initialized. Cannot start contract generation.^0')
+        return
+    end
+    
     Citizen.CreateThread(function()
         while true do
             local players = QBCore.Functions.GetPlayers()
@@ -95,8 +181,22 @@ function StartContractGeneration()
                 
                 if Player then
                     -- Check if they have a burner phone and are not on cooldown
-                    local hasPhone = Player.Functions.GetItemByName(Config.BurnerPhoneItem)
+                    local hasPhone = false
                     local citizenId = Player.PlayerData.citizenid
+                    
+                    if Config.Framework == "qbox" then
+                        -- Use ox_inventory to check for the item
+                        local items = exports.ox_inventory:GetInventoryItems(playerId)
+                        for _, item in pairs(items) do
+                            if item.name == Config.BurnerPhoneItem then
+                                hasPhone = true
+                                break
+                            end
+                        end
+                    else
+                        -- Use QBCore inventory
+                        hasPhone = Player.Functions.GetItemByName(Config.BurnerPhoneItem)
+                    end
                     
                     if hasPhone and not cooldowns[citizenId] then
                         -- Random chance to receive a contract
@@ -128,6 +228,11 @@ end
 RegisterNetEvent('vein-blackmarket:server:selfDestruct')
 AddEventHandler('vein-blackmarket:server:selfDestruct', function()
     local src = source
+    if not Framework then
+        print('^1[vein-blackmarket] Framework not initialized. Cannot process self-destruct.^0')
+        return
+    end
+    
     local Player = Framework.Functions.GetPlayer(src)
     
     if Player then
@@ -176,6 +281,11 @@ end
 RegisterNetEvent('vein-blackmarket:server:createPoliceBlip')
 AddEventHandler('vein-blackmarket:server:createPoliceBlip', function(coords)
     local src = source
+    if not QBCore then
+        print('^1[vein-blackmarket] QBCore not initialized. Cannot create police blip.^0')
+        return
+    end
+    
     local Player = QBCore.Functions.GetPlayer(src)
     
     if Player then
@@ -191,6 +301,7 @@ end)
 
 -- Check if a player exists by source
 function GetPlayerFromSource(src)
+    if not Framework then return false end
     local Player = Framework.Functions.GetPlayer(src)
     return Player ~= nil
 end 

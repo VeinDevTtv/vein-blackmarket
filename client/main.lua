@@ -18,7 +18,7 @@ local npcWatcher = nil
 -- Initialize the resource
 Citizen.CreateThread(function()
     if Config.Framework == "qbox" then
-        Framework = exports['qbx_core']:GetSharedObject()
+        Framework = exports['qbx_core']:GetCoreObject()
         QBCore = Framework
     else -- Default to QBCore
         Framework = exports['qb-core']:GetCoreObject()
@@ -107,7 +107,11 @@ function CheckBurnerPhone()
     local burnerPhone = Config.BurnerPhoneItem
     hasPhone = false
     
-    if PlayerData and PlayerData.items then
+    if Config.Framework == "qbox" then
+        -- For QBox, we rely on server-side checks and events
+        -- Client doesn't have direct access to ox_inventory contents
+        -- This will be updated via events
+    elseif PlayerData and PlayerData.items then
         for _, item in pairs(PlayerData.items) do
             if item.name == burnerPhone then
                 hasPhone = true
@@ -132,6 +136,16 @@ AddEventHandler('inventory:client:ItemBox', function(data, type)
                 ClosePhone()
             end
         end
+    end
+end)
+
+-- Register event to update burner phone status from server for QBox
+RegisterNetEvent('vein-blackmarket:client:updatePhoneStatus')
+AddEventHandler('vein-blackmarket:client:updatePhoneStatus', function(status)
+    hasPhone = status
+    
+    if not hasPhone and phoneOpen then
+        ClosePhone()
     end
 end)
 

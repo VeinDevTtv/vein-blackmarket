@@ -3,16 +3,60 @@ local QBCore = nil
 local activeContracts = {}
 local contractIdCounter = 0
 local onlineContractDrop = {}
+local cooldowns = {}
 
 -- Framework reference
 local Framework = nil
 Citizen.CreateThread(function()
     if Config.Framework == "qbox" then
-        Framework = exports['qbx_core']:GetSharedObject()
-        QBCore = Framework
+        -- Try different methods to get QBX Core with error handling
+        local success, result = pcall(function()
+            return exports['qbx_core']:GetCoreObject()
+        end)
+        
+        if success and result then
+            Framework = result
+            QBCore = Framework
+            print('^2[vein-blackmarket] QBX Core loaded in contracts module^0')
+        else
+            -- Try alternative methods
+            success, result = pcall(function() 
+                return exports['qbx_core']:GetSharedObject() 
+            end)
+            
+            if success and result then
+                Framework = result
+                QBCore = Framework
+                print('^2[vein-blackmarket] QBX Core loaded in contracts module via GetSharedObject^0')
+            else
+                print('^1[vein-blackmarket] Failed to load QBX Core in contracts. Falling back to QBCore.^0')
+                
+                -- Fall back to QBCore
+                success, result = pcall(function() 
+                    return exports['qb-core']:GetCoreObject() 
+                end)
+                
+                if success and result then
+                    Framework = result
+                    QBCore = Framework
+                    print('^2[vein-blackmarket] QBCore loaded in contracts module as fallback^0')
+                else
+                    print('^1[vein-blackmarket] Failed to load any framework in contracts module. Resource may not function correctly.^0')
+                end
+            end
+        end
     else -- Default to QBCore
-        Framework = exports['qb-core']:GetCoreObject()
-        QBCore = Framework
+        local success, result = pcall(function() 
+            return exports['qb-core']:GetCoreObject() 
+        end)
+        
+        if success and result then
+            Framework = result
+            QBCore = Framework
+            print('^2[vein-blackmarket] QBCore loaded in contracts module^0')
+        else
+            print('^1[vein-blackmarket] Failed to load QBCore in contracts module. Resource may not function correctly.^0')
+        end
     end
 end)
 
@@ -35,6 +79,11 @@ end
 
 -- Generate a new contract for a player
 function GenerateContractForPlayer(playerId)
+    if not Framework then
+        print('^1[vein-blackmarket] Framework not initialized in contracts module. Cannot generate contract.^0')
+        return
+    end
+    
     local Player = Framework.Functions.GetPlayer(playerId)
     
     if not Player then return end
@@ -190,6 +239,11 @@ end)
 RegisterNetEvent('vein-blackmarket:server:completeContract')
 AddEventHandler('vein-blackmarket:server:completeContract', function(contractId, heatLevel)
     local src = source
+    if not Framework then
+        print('^1[vein-blackmarket] Framework not initialized in contracts module. Cannot complete contract.^0')
+        return
+    end
+    
     local Player = Framework.Functions.GetPlayer(src)
     local contract = activeContracts[contractId]
     
@@ -239,25 +293,55 @@ AddEventHandler('vein-blackmarket:server:completeContract', function(contractId,
         -- Award bonus items if applicable
         if contract.hasBonus and #contract.bonusItems > 0 and not contract.isDecoy then
             for _, item in ipairs(contract.bonusItems) do
-                Player.Functions.AddItem(item.name, item.amount)
-                TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[item.name], 'add')
+                if Config.Framework == "qbox" then
+                    -- Use ox_inventory for QBox
+                    exports.ox_inventory:AddItem(src, item.name, item.amount)
+                else
+                    -- Use QBCore inventory
+                    Player.Functions.AddItem(item.name, item.amount)
+                    TriggerClientEvent('inventory:client:ItemBox', src, Framework.Shared.Items[item.name], 'add')
+                end
                 SendNotification(src, 'Bonus item received: ' .. item.label, 'success')
             end
         end
         
-        -- Award reputation
-        local difficultyData = Config.ContractDifficulties[contract.difficulty]
-        local repGain = difficultyData.repGain
+        -- Increase reputation
+        local currentRep = Player.PlayerData.metadata.blackmarketrep or 0
+        local repGain = 0
         
-        -- Bonus rep for low heat
-        if heatLevel < 25 then
-            repGain = repGain * 1.25
+        if contract.isDecoy then
+            repGain = 0 -- No rep for decoy packages
+        else
+            if contract.difficulty == "easy" then
+                repGain = math.random(1, 2)
+            elseif contract.difficulty == "medium" then
+                repGain = math.random(2, 3)
+            elseif contract.difficulty == "hard" then
+                repGain = math.random(3, 5)
+            end
+            
+            -- Apply heat bonus to rep (staying low-profile)
+            if heatLevel < 25 then
+                repGain = repGain + 1
+            end
         end
         
-        AddPlayerReputation(Player, repGain)
-        
-        -- Cleanup contract
-        activeContracts[contractId] = nil
+        if repGain > 0 then
+            local newRep = currentRep + repGain
+            
+            -- Store rep to player metadata
+            Player.Functions.SetMetaData("blackmarketrep", newRep)
+            
+            -- Check if player leveled up
+            local oldLevel = GetRepLevelName(currentRep)
+            local newLevel = GetRepLevelName(newRep)
+            
+            if oldLevel ~= newLevel then
+                SendNotification(src, 'Black Market reputation increased to ' .. newLevel .. '!', 'success')
+            else
+                SendNotification(src, 'Black Market reputation increased by ' .. repGain .. ' points', 'success')
+            end
+        end
     end
 end)
 
